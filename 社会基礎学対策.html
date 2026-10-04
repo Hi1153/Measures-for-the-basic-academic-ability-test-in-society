@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#f5f6f8">
+<title>社会 基礎学力テスト対策</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#f3f4f6;color:#202124;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif}
+body{min-height:100vh}
+button,input{font:inherit}
+.header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #ddd}
+.header-inner{max-width:900px;margin:auto;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.title{font-weight:700;font-size:18px}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:16px}
+.main{max-width:900px;margin:auto;padding:18px 14px 110px}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;margin-bottom:14px;padding:18px;box-shadow:0 1px 3px #0000000a}
+.start{text-align:center;padding:34px 18px}
+h1{font-size:25px;margin:0 0 8px}
+h2{font-size:18px;margin:0 0 12px}
+p{line-height:1.7}
+.info{background:#f7f8fa;border-radius:10px;padding:14px;text-align:left;font-size:14px;line-height:1.8}
+.primary,.secondary,.danger{border:0;border-radius:9px;padding:12px 18px;font-weight:700;cursor:pointer}
+.primary{background:#1a73e8;color:#fff}
+.secondary{background:#eef1f5;color:#202124}
+.danger{background:#d93025;color:#fff}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+.hidden{display:none!important}
+.progress-wrap{background:#e1e4e8;height:7px;border-radius:99px;overflow:hidden;margin-bottom:16px}
+.progress{height:100%;background:#1a73e8;width:0%;transition:.2s}
+.question-number{font-size:13px;color:#666;margin-bottom:7px}
+.question-text{font-size:17px;font-weight:700;line-height:1.7;margin-bottom:15px}
+.short-input{width:100%;padding:14px;border:1px solid #c8ccd1;border-radius:8px;outline:none;background:#fff;font-size:17px}
+.short-input:focus{border-color:#1a73e8;box-shadow:0 0 0 2px #1a73e822}
+.nav{display:flex;justify-content:space-between;gap:8px;position:sticky;bottom:10px;z-index:5}
+.nav button{flex:1}
+.question-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:6px}
+.q-dot{border:1px solid #ccd0d5;background:#fff;border-radius:7px;height:34px;cursor:pointer;font-size:12px}
+.q-dot.answered{background:#eaf2ff;border-color:#1a73e8;color:#135db8}
+.q-dot.current{box-shadow:0 0 0 2px #1a73e8 inset;font-weight:700}
+.result-score{text-align:center;font-size:44px;font-weight:800;margin:15px 0 4px}
+.result-sub{text-align:center;color:#666}
+.answer-row{border-top:1px solid #ddd;padding:14px 0;line-height:1.7}
+.correct{color:#188038;font-weight:700}
+.incorrect{color:#d93025;font-weight:700}
+.answer{margin-top:6px;padding:9px 11px;background:#f7f8fa;border-radius:7px}
+.category{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;background:#eef1f5;color:#555;margin-bottom:9px}
+.retry-info{background:#fff8e1;border:1px solid #f0d98a;border-radius:10px;padding:13px;font-size:14px;line-height:1.7;margin-top:14px}
+@media(max-width:600px){
+.main{padding:12px 10px 100px}
+.card{padding:15px}
+.question-text{font-size:16px}
+.question-grid{grid-template-columns:repeat(8,1fr)}
+.q-dot{height:32px}
+.header-inner{padding:11px 12px}
+.title{font-size:16px}
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+<div class="header-inner">
+<div class="title">社会 基礎学力テスト対策</div>
+<div id="timer" class="timer">45:00</div>
+</div>
+</header>
+
+<main class="main">
+
+<section id="startScreen" class="card start">
+
+<h1>社会 基礎学力テスト対策</h1>
+
+<p>地理・歴史<br>中学校内容の総復習</p>
+
+<div class="info">
+<b>テストについて</b><br>
+・地理40問 歴史70問 計110問<br>
+・中1・中2・中3の内容を含みます<br>
+・制限時間 45分<br>
+・全問入力式
+</div>
+
+<div class="actions">
+<button class="primary" onclick="startTest()">テストを開始</button>
+</div>
+
+<div id="retryArea"></div>
+
+</section>
+
+<section id="testScreen" class="hidden">
+
+<div class="card">
+
+<div class="progress-wrap">
+<div id="progress" class="progress"></div>
+</div>
+
+<div id="question"></div>
+
+</div>
+
+<div class="card">
+<div style="font-weight:700;margin-bottom:10px">問題一覧</div>
+<div id="questionGrid" class="question-grid"></div>
+</div>
+
+<div class="nav">
+<button id="prevBtn" class="secondary" onclick="prevQuestion()">← 前の問題</button>
+<button id="nextBtn" class="primary" onclick="nextQuestion()">次の問題 →</button>
+</div>
+
+</section>
+
+<section id="resultScreen" class="hidden">
+
+<div class="card">
+
+<h2 style="text-align:center">テスト結果</h2>
+
+<div id="score" class="result-score">0 / 100</div>
+<div id="percentage" class="result-sub">0%</div>
+<div id="resultMessage" style="text-align:center;margin-top:15px;font-weight:700"></div>
+
+<div id="retryResultArea"></div>
+
+<div class="actions">
+<button class="primary" onclick="showAnswers()">正答・解説を見る</button>
+<button class="secondary" onclick="location.reload()">もう一度受ける</button>
+</div>
+
+</div>
+
+<div id="answerScreen" class="card hidden">
+<h2>正答・解説</h2>
+<div id="answers"></div>
+</div>
+
+</section>
+
+</main>
+
+<script>
+
+const questions=[
+
+/* =========================
+   地理 40問
+========================= */
+
+{c:"地理",q:"地球を南北に分ける、緯度0度の線を何というか。",a:["赤道"],e:"赤道は緯度0度の線です。"},
+
+{c:"地理",q:"経度0度の基準となるイギリスのロンドン付近を通る線を何というか。",a:["本初子午線"],e:"本初子午線を経度0度とします。"},
+
+{c:"地理",q:"日本の標準時を決める基準となっている子午線は東経何度か。",a:["135","135度"],e:"東経135度の子午線が日本標準時の基準です。"},
+
+{c:"地理",q:"地球上で経度15度の差があるとき、時刻は何時間ずれるか。",a:["1","1時間"],e:"経度15度で1時間の時差が生じます。"},
+
+{c:"地理",q:"世界最大の大陸は何か。",a:["ユーラシア大陸","ユーラシア"],e:"ユーラシア大陸が最大です。"},
+
+{c:"地理",q:"世界最大の海洋は何か。",a:["太平洋"],e:"太平洋は世界最大の海洋です。"},
+
+{c:"地理",q:"世界最大の国土面積を持つ国はどこか。",a:["ロシア","ロシア連邦"],e:"ロシアが世界最大の国土面積を持ちます。"},
+
+{c:"地理",q:"アフリカ北部に広がる世界最大の砂漠は何か。",a:["サハラ砂漠","サハラ"],e:"サハラ砂漠はアフリカ北部に広がっています。"},
+
+{c:"地理",q:"南アメリカ大陸を流れる世界最大級の河川は何か。",a:["アマゾン川","アマゾン"],e:"アマゾン川は南アメリカを流れています。"},
+
+{c:"地理",q:"ヨーロッパとアジアの境界の一部をなす山脈は何か。",a:["ウラル山脈","ウラル"],e:"ウラル山脈はヨーロッパとアジアの境界の一部です。"},
+
+{c:"地理",q:"一年中高温で、降水量も多い地域に見られる気候帯は何か。",a:["熱帯"],e:"熱帯は一年を通して高温です。"},
+
+{c:"地理",q:"降水量が少なく、砂漠などが広がる気候帯は何か。",a:["乾燥帯"],e:"乾燥帯は降水量が少ない気候帯です。"},
+
+{c:"地理",q:"夏に乾燥し、冬に雨が多い気候を何というか。",a:["地中海性気候"],e:"地中海性気候は夏季乾燥・冬季多雨が特徴です。"},
+
+{c:"地理",q:"日本の4つの大きな島のうち、最も北にある島は何か。",a:["北海道"],e:"北海道は日本列島の北に位置します。"},
+
+{c:"地理",q:"日本の4つの大きな島のうち、最も南西にある島は何か。",a:["九州"],e:"北海道・本州・四国・九州のうち南西にあるのが九州です。"},
+
+{c:"地理",q:"日本で最も面積が大きい都道府県はどこか。",a:["北海道"],e:"北海道が最大です。"},
+
+{c:"地理",q:"日本で最も人口が多い都道府県はどこか。",a:["東京都","東京"],e:"東京都が最も人口の多い都道府県です。"},
+
+{c:"地理",q:"日本で最も高い山は何か。",a:["富士山","ふじさん"],e:"富士山は標高3776mで日本最高峰です。"},
+
+{c:"地理",q:"日本で最も長い川は何か。",a:["信濃川","しなのがわ"],e:"信濃川が日本最長の川です。"},
+
+{c:"地理",q:"日本で最も大きい湖は何か。",a:["琵琶湖","びわこ"],e:"琵琶湖が日本最大の湖です。"},
+
+{c:"地理",q:"山地から平地に出た川が土砂を堆積してつくる扇形の地形を何というか。",a:["扇状地","せんじょうち"],e:"扇状地は山地から平地に出るところに形成されます。"},
+
+{c:"地理",q:"河口付近に土砂が堆積してできる三角形の地形を何というか。",a:["三角州","さんかくす"],e:"河口にできる三角形の低地を三角州といいます。"},
+
+{c:"地理",q:"山地の谷に海水が入り込んでできた複雑な海岸を何というか。",a:["リアス海岸","リアスかいがん"],e:"リアス海岸は沈水した山地の谷によって形成されます。"},
+
+{c:"地理",q:"日本付近にある、太平洋側の暖流を何というか。",a:["黒潮","くろしお"],e:"黒潮は日本の太平洋側を北上する暖流です。"},
+
+{c:"地理",q:"日本海側を南下する寒流を何というか。",a:["リマン海流","リマンかいりゅう"],e:"リマン海流は日本海側を南下する寒流です。"},
+
+{c:"地理",q:"冬、日本海側に雪を降らせる季節風はどの方向から吹くか。",a:["北西","北西から","ほくせい"],e:"冬の北西季節風が日本海を通って水蒸気を含みます。"},
+
+{c:"地理",q:"梅雨の時期に日本付近に停滞する前線を何というか。",a:["梅雨前線","つゆぜんせん"],e:"梅雨前線によって長雨が起こります。"},
+
+{c:"地理",q:"大都市の近くで、野菜などを都市向けに生産する農業を何というか。",a:["近郊農業","きんこうのうぎょう"],e:"大都市周辺で行われる農業を近郊農業といいます。"},
+
+{c:"地理",q:"暖かい地域で作物の出荷時期を早める栽培方法を何というか。",a:["促成栽培","そくせいさいばい"],e:"促成栽培は出荷時期を早める栽培方法です。"},
+
+{c:"地理",q:"北海道などで広い土地を利用して行う農業を何というか。",a:["大規模農業","だいきぼのうぎょう"],e:"北海道では広大な土地を利用した大規模農業が盛んです。"},
+
+{c:"地理",q:"愛知県を中心とする工業地帯を何というか。",a:["中京工業地帯","ちゅうきょうこうぎょうちたい"],e:"愛知県を中心に中京工業地帯が形成されています。"},
+
+{c:"地理",q:"東京都・神奈川県を中心とする工業地帯を何というか。",a:["京浜工業地帯","けいひんこうぎょうちたい"],e:"東京・神奈川を中心とする工業地帯です。"},
+
+{c:"地理",q:"大阪府・兵庫県を中心とする工業地帯を何というか。",a:["阪神工業地帯","はんしんこうぎょうちたい"],e:"大阪・兵庫を中心とする工業地帯です。"},
+
+{c:"地理",q:"瀬戸内海沿岸に広がる工業地域を何というか。",a:["瀬戸内工業地域","せとうちこうぎょうちいき"],e:"瀬戸内海沿岸に工業地域が形成されています。"},
+
+{c:"地理",q:"東京・名古屋・大阪を中心とする三つの大都市圏をまとめて何というか。",a:["三大都市圏","さんだいとしけん"],e:"東京圏・名古屋圏・大阪圏を三大都市圏といいます。"},
+
+{c:"地理",q:"人口が減少し、地域社会の維持が難しくなる問題を何というか。",a:["過疎化","かそか"],e:"人口減少によって地域の維持が難しくなることを過疎化といいます。"},
+
+{c:"地理",q:"都市に人口や産業が集中し、都市人口の割合が増えることを何というか。",a:["都市化","としか"],e:"都市への人口集中などを都市化といいます。"},
+
+{c:"地理",q:"人口に占める高齢者の割合が増加する一方、子どもの割合が低下することを何というか。",a:["少子高齢化","しょうしこうれいか"],e:"出生数の減少と高齢化が同時に進む現象です。"},
+
+{c:"地理",q:"日本列島が属する、地震や火山が多い造山帯を何というか。",a:["環太平洋造山帯","かんたいへいようぞうざんたい"],e:"日本は環太平洋造山帯に属しています。"},
+
+{c:"地理",q:"日本付近で地震が多い主な理由となっている、地球表面を覆う岩盤を何というか。",a:["プレート"],e:"日本付近には複数のプレートが集まっています。"},
+
+/* =========================
+   歴史 70問
+========================= */
+
+{c:"歴史",q:"打製石器を使い、狩猟や採集を中心に生活していた時代を何というか。",a:["旧石器時代","きゅうせっきじだい"],e:"旧石器時代には打製石器が使われました。"},
+
+{c:"歴史",q:"縄文時代に使われた、表面に縄目の文様がある土器を何というか。",a:["縄文土器","じょうもんどき"],e:"縄文土器は縄目の文様が特徴です。"},
+
+{c:"歴史",q:"縄文時代の人々が食べ物などを捨てた跡を何というか。",a:["貝塚","かいづか"],e:"貝殻などが積み重なった遺跡です。"},
+
+{c:"歴史",q:"米づくりが日本に伝わり広がった時代を何というか。",a:["弥生時代","やよいじだい"],e:"弥生時代に米づくりが広がりました。"},
+
+{c:"歴史",q:"弥生時代に米を貯蔵するために作られた建物を何というか。",a:["高床倉庫","たかゆかそうこ"],e:"湿気やねずみなどから米を守るための倉庫です。"},
+
+{c:"歴史",q:"3世紀ごろ、卑弥呼が治めていたとされる国は何か。",a:["邪馬台国","やまたいこく"],e:"魏志倭人伝に卑弥呼と邪馬台国についての記録があります。"},
+
+{c:"歴史",q:"古墳の周囲などに置かれた人物や動物などの焼き物を何というか。",a:["埴輪","はにわ"],e:"埴輪は古墳の周囲などに置かれました。"},
+
+{c:"歴史",q:"聖徳太子が定めた、役人の心構えを示したものを何というか。",a:["十七条の憲法","十七条憲法","じゅうしちじょうのけんぽう"],e:"役人の心得を示したものです。"},
+
+{c:"歴史",q:"聖徳太子が定めた、家柄ではなく能力などによって役人の位を定める制度を何というか。",a:["冠位十二階","かんいじゅうにかい"],e:"冠位十二階は603年に定められました。"},
+
+{c:"歴史",q:"隋に派遣された遣隋使の代表的な人物は誰か。",a:["小野妹子","おののいもこ"],e:"小野妹子が遣隋使として隋へ派遣されました。"},
+
+{c:"歴史",q:"645年に始まった政治改革を何というか。",a:["大化の改新","たいかのかいしん"],e:"中大兄皇子や中臣鎌足らが進めました。"},
+
+{c:"歴史",q:"大化の改新を進めた中心人物の一人は誰か。",a:["中大兄皇子","なかのおおえのおうじ"],e:"中大兄皇子は後の天智天皇です。"},
+
+{c:"歴史",q:"大化の改新を進め、中大兄皇子と協力した人物は誰か。",a:["中臣鎌足","なかとみのかまたり"],e:"中臣鎌足は後の藤原鎌足です。"},
+
+{c:"歴史",q:"奈良時代に都が置かれた場所を何というか。",a:["平城京","へいじょうきょう"],e:"710年に平城京へ都が移されました。"},
+
+{c:"歴史",q:"東大寺の大仏造立を進めた天皇は誰か。",a:["聖武天皇","しょうむてんのう"],e:"聖武天皇は仏教による国家の安定を目指しました。"},
+
+{c:"歴史",q:"聖武天皇が全国に建てさせた寺を何というか。",a:["国分寺","国分尼寺","こくぶんじ","こくぶんにじ"],e:"国分寺と国分尼寺を全国に建立しました。"},
+
+{c:"歴史",q:"奈良時代の歴史書で、日本最古の歴史書とされるものは何か。",a:["古事記","こじき"],e:"712年に完成したとされます。"},
+
+{c:"歴史",q:"奈良時代に完成した、日本の歴史を記した書物は何か。",a:["日本書紀","にほんしょき"],e:"720年に完成したとされます。"},
+
+{c:"歴史",q:"794年に都を平安京へ移した天皇は誰か。",a:["桓武天皇","かんむてんのう"],e:"桓武天皇が平安京へ都を移しました。"},
+
+{c:"歴史",q:"平安時代に藤原氏が摂政や関白として政治を行ったことを何というか。",a:["摂関政治","せっかんせいじ"],e:"藤原氏が天皇を補佐する立場を利用して権力を握りました。"},
+
+{c:"歴史",q:"『源氏物語』を書いた人物は誰か。",a:["紫式部","むらさきしきぶ"],e:"紫式部による長編物語です。"},
+
+{c:"歴史",q:"『枕草子』を書いた人物は誰か。",a:["清少納言","せいしょうなごん"],e:"清少納言による随筆です。"},
+
+{c:"歴史",q:"平安時代末期に大きな勢力を持った二つの武士団は何か。",a:["源氏と平氏","げんじとへいし"],e:"源氏と平氏が勢力を争いました。"},
+
+{c:"歴史",q:"鎌倉幕府を開いた人物は誰か。",a:["源頼朝","みなもとのよりとも"],e:"源頼朝が鎌倉幕府を開きました。"},
+
+{c:"歴史",q:"将軍が御家人に土地などを保障し、御家人が将軍のために働く関係を何というか。",a:["御恩と奉公","ごおんとほうこう"],e:"鎌倉幕府の主従関係を表します。"},
+
+{c:"歴史",q:"承久の乱を起こして鎌倉幕府を倒そうとした上皇は誰か。",a:["後鳥羽上皇","ごとばじょうこう"],e:"後鳥羽上皇が幕府打倒を目指しました。"},
+
+{c:"歴史",q:"承久の乱後、朝廷を監視するため京都に置かれた機関は何か。",a:["六波羅探題","ろくはらたんだい"],e:"六波羅探題が京都に置かれました。"},
+
+{c:"歴史",q:"1232年に北条泰時が制定した武士のための法律を何というか。",a:["御成敗式目","ごせいばいしきもく"],e:"武士社会の慣習などを基準として定められました。"},
+
+{c:"歴史",q:"鎌倉時代、仏教の新しい宗派として法然が開いた宗派は何か。",a:["浄土宗","じょうどしゅう"],e:"法然は浄土宗を開きました。"},
+
+{c:"歴史",q:"親鸞が開いた仏教の宗派を何というか。",a:["浄土真宗","じょうどしんしゅう"],e:"親鸞は浄土真宗を広めました。"},
+
+{c:"歴史",q:"日蓮が開いた仏教の宗派を何というか。",a:["日蓮宗","にちれんしゅう"],e:"日蓮は日蓮宗を開きました。"},
+
+{c:"歴史",q:"元が日本を攻めてきた出来事を何というか。",a:["元寇","げんこう"],e:"文永の役と弘安の役を合わせて元寇といいます。"},
+
+{c:"歴史",q:"鎌倉幕府を倒した天皇は誰か。",a:["後醍醐天皇","ごだいごてんのう"],e:"後醍醐天皇が鎌倉幕府を倒しました。"},
+
+{c:"歴史",q:"室町幕府を開いた人物は誰か。",a:["足利尊氏","あしかがたかうじ"],e:"足利尊氏が室町幕府を開きました。"},
+
+{c:"歴史",q:"室町幕府の3代将軍は誰か。",a:["足利義満","あしかがよしみつ"],e:"足利義満は南北朝を統一しました。"},
+
+{c:"歴史",q:"足利義満が明との間で行った貿易を何というか。",a:["日明貿易","勘合貿易","にちみんぼうえき","かんごうぼうえき"],e:"勘合を使ったため勘合貿易とも呼ばれます。"},
+
+{c:"歴史",q:"1467年に始まり、戦国時代へ向かうきっかけとなった戦乱は何か。",a:["応仁の乱","おうにんのらん"],e:"応仁の乱によって室町幕府の力が弱まりました。"},
+
+{c:"歴史",q:"戦国時代に各地を支配した大名を何というか。",a:["戦国大名","せんごくだいみょう"],e:"各地の戦国大名が勢力を争いました。"},
+
+{c:"歴史",q:"1543年に鉄砲が伝わった島はどこか。",a:["種子島","たねがしま"],e:"ポルトガル人によって種子島に鉄砲が伝わりました。"},
+
+{c:"歴史",q:"1549年に日本へキリスト教を伝えた人物は誰か。",a:["フランシスコザビエル","フランシスコ・ザビエル","ザビエル","ざびえる"],e:"ザビエルは鹿児島に来航しました。"},
+
+{c:"歴史",q:"織田信長が商工業を活発にするために行った政策を何というか。",a:["楽市楽座","楽市・楽座","らくいちらくざ"],e:"座の特権を否定し、自由な商業を促しました。"},
+
+{c:"歴史",q:"豊臣秀吉が全国の土地の面積や収穫高を調査した政策を何というか。",a:["太閤検地","たいこうけんち"],e:"太閤検地によって土地と収穫高を把握しました。"},
+
+{c:"歴史",q:"豊臣秀吉が農民から武器を取り上げた政策を何というか。",a:["刀狩","かたながり"],e:"刀狩によって兵農分離を進めました。"},
+
+{c:"歴史",q:"江戸幕府を開いた人物は誰か。",a:["徳川家康","とくがわいえやす"],e:"1603年に徳川家康が征夷大将軍となりました。"},
+
+{c:"歴史",q:"大名を江戸と領地に交代で住まわせた制度を何というか。",a:["参勤交代","さんきんこうたい"],e:"大名統制のために行われました。"},
+
+{c:"歴史",q:"江戸幕府が大名を統制するために定めた法律を何というか。",a:["武家諸法度","ぶけしょはっと"],e:"大名の行動を統制するための法律です。"},
+
+{c:"歴史",q:"鎖国中、オランダとの貿易が行われた長崎の場所を何というか。",a:["出島","でじま"],e:"長崎の出島でオランダとの貿易が行われました。"},
+
+{c:"歴史",q:"徳川吉宗が行った改革を何というか。",a:["享保の改革","きょうほうのかいかく"],e:"徳川吉宗による改革です。"},
+
+{c:"歴史",q:"松平定信が行った改革を何というか。",a:["寛政の改革","かんせいのかいかく"],e:"松平定信による改革です。"},
+
+{c:"歴史",q:"水野忠邦が行った改革を何というか。",a:["天保の改革","てんぽうのかいかく"],e:"水野忠邦による改革です。"},
+
+{c:"歴史",q:"1853年に浦賀へ来航したアメリカの使節は誰か。",a:["ペリー","ぺりー"],e:"ペリーが黒船を率いて浦賀に来航しました。"},
+
+{c:"歴史",q:"1854年、日本がアメリカと結んだ条約は何か。",a:["日米和親条約","にちべいわしんじょうやく"],e:"下田と函館を開港しました。"},
+
+{c:"歴史",q:"1858年に結ばれた、領事裁判権を認め関税自主権を持たなかった条約は何か。",a:["日米修好通商条約","にちべいしゅうこうつうしょうじょうやく"],e:"日本にとって不平等な内容を含む条約でした。"},
+
+{c:"歴史",q:"1867年、徳川慶喜が政権を朝廷に返した出来事を何というか。",a:["大政奉還","たいせいほうかん"],e:"徳川慶喜が政権を朝廷に返しました。"},
+
+{c:"歴史",q:"1868年から始まった政治や社会の大きな変化を何というか。",a:["明治維新","めいじいしん"],e:"江戸幕府が倒れ、明治政府による改革が進みました。"},
+
+{c:"歴史",q:"明治政府が藩を廃止して府県を置いた改革を何というか。",a:["廃藩置県","はいはんちけん"],e:"中央集権国家をつくるための改革です。"},
+
+{c:"歴史",q:"明治政府が産業を発展させ、軍隊を強くしようとした政策のスローガンを何というか。",a:["富国強兵","ふこくきょうへい"],e:"富国強兵を掲げて近代化を進めました。"},
+
+{c:"歴史",q:"1889年に発布された近代日本の憲法を何というか。",a:["大日本帝国憲法","だいにっぽんていこくけんぽう","だいにほんていこくけんぽう"],e:"1889年に発布されました。"},
+
+{c:"歴史",q:"1894年に始まった日本と清の戦争を何というか。",a:["日清戦争","にっしんせんそう"],e:"朝鮮をめぐる対立などを背景に始まりました。"},
+
+{c:"歴史",q:"1904年に始まった日本とロシアの戦争を何というか。",a:["日露戦争","にちろせんそう"],e:"満州や朝鮮をめぐる対立などを背景に始まりました。"},
+
+{c:"歴史",q:"1910年、日本が朝鮮を植民地化した出来事を何というか。",a:["韓国併合","かんこくへいごう"],e:"1910年に韓国併合が行われました。"},
+
+{c:"歴史",q:"1914年に始まった世界規模の戦争を何というか。",a:["第一次世界大戦","だいいちじせかいたいせん"],e:"第一次世界大戦は1914年に始まりました。"},
+
+{c:"歴史",q:"1925年に成立し、満25歳以上の男子に選挙権を認めた法律は何か。",a:["普通選挙法","ふつうせんきょほう"],e:"1925年に普通選挙法が成立しました。"},
+
+{c:"歴史",q:"1925年に制定され、社会主義や共産主義などの運動を取り締まった法律は何か。",a:["治安維持法","ちあんいじほう"],e:"治安維持法によって思想・運動が厳しく取り締まられました。"},
+
+{c:"歴史",q:"1937年に始まった日本と中国の全面的な戦争を何というか。",a:["日中戦争","にっちゅうせんそう"],e:"盧溝橋事件をきっかけに全面化しました。"},
+
+{c:"歴史",q:"1939年に始まった世界規模の戦争を何というか。",a:["第二次世界大戦","だいにじせかいたいせん"],e:"ドイツのポーランド侵攻をきっかけに始まりました。"},
+
+{c:"歴史",q:"1941年、日本がアメリカなどとの戦争を始めた戦争を何というか。",a:["太平洋戦争","たいへいようせんそう"],e:"真珠湾攻撃をきっかけに始まりました。"},
+
+{c:"歴史",q:"1945年、日本が受諾した宣言を何というか。",a:["ポツダム宣言","ぽつだむせんげん"],e:"日本はポツダム宣言を受諾して降伏しました。"},
+
+{c:"歴史",q:"1946年に公布され、1947年に施行された現在の日本の憲法を何というか。",a:["日本国憲法","にほんこくけんぽう"],e:"日本国憲法は1947年5月3日に施行されました。"},
+
+{c:"歴史",q:"第二次世界大戦後、地主の土地を政府が買い上げ、小作人に売り渡した改革を何というか。",a:["農地改革","のうちかいかく"],e:"農地改革によって自作農が増加しました。"}
+
+];
+
+let current=0;
+let activeQuestions=[];
+let userAnswers=[];
+let retryMode=false;
+let submitted=false;
+let timeLeft=45*60;
+let timerId=null;
+
+const originalCount=questions.length;
+const geographyCount=questions.filter(q=>q.c==="地理").length;
+const historyCount=questions.filter(q=>q.c==="歴史").length;
+
+function normalizeText(v){
+
+return String(v)
+.trim()
+.toLowerCase()
+.normalize("NFKC")
+.replace(/[ \t\r\n　]/g,"")
+.replace(/[・･,，。．、\-ー―‐−]/g,"")
+.replace(/[ぁ-ゖ]/g,m=>m)
+.replace(/[ァ-ヶ]/g,m=>String.fromCharCode(m.charCodeAt(0)-0x60));
+
+}
+
+function isCorrect(q,index){
+
+const input=normalizeText(userAnswers[index]||"");
+
+if(!input)return false;
+
+return q.a.some(ans=>normalizeText(ans)===input);
+
+}
+
+function escapeHtml(v){
+
+return String(v)
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
+}
+
+function getWrong(){
+
+try{
+const x=JSON.parse(localStorage.getItem("socialTestWrong")||"[]");
+return Array.isArray(x)?x:[];
+}catch(e){
+return [];
+}
+
+}
+
+function saveWrong(x){
+
+localStorage.setItem("socialTestWrong",JSON.stringify(x));
+
+}
+
+function startTest(){
+
+retryMode=false;
+activeQuestions=[...questions];
+userAnswers=new Array(activeQuestions.length).fill("");
+current=0;
+submitted=false;
+timeLeft=45*60;
+
+openTest();
+
+}
+
+function startRetry(){
+
+const wrong=getWrong();
+
+if(!wrong.length){
+alert("再テストできる問題はありません。");
+return;
+}
+
+activeQuestions=wrong.map(i=>questions[i]);
+
+activeQuestions.sort((a,b)=>{
+if(a.c==="歴史"&&b.c!=="歴史")return -1;
+if(a.c!=="歴史"&&b.c==="歴史")return 1;
+return 0;
+});
+
+retryMode=true;
+userAnswers=new Array(activeQuestions.length).fill("");
+current=0;
+submitted=false;
+
+timeLeft=Math.min(45*60,Math.max(5*60,activeQuestions.length*60));
+
+openTest();
+
+}
+
+function openTest(){
+
+document.getElementById("startScreen").classList.add("hidden");
+document.getElementById("testScreen").classList.remove("hidden");
+document.getElementById("resultScreen").classList.add("hidden");
+
+buildGrid();
+showQuestion();
+updateTimer();
+
+if(timerId)clearInterval(timerId);
+
+timerId=setInterval(()=>{
+
+timeLeft--;
+
+if(timeLeft<=0){
+timeLeft=0;
+updateTimer();
+clearInterval(timerId);
+submitTest(true);
+return;
+}
+
+updateTimer();
+
+},1000);
+
+window.scrollTo({top:0,behavior:"smooth"});
+
+}
+
+function updateTimer(){
+
+const m=Math.floor(timeLeft/60);
+const s=timeLeft%60;
+
+document.getElementById("timer").textContent=
+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+
+document.getElementById("timer").style.color=
+timeLeft<=300?"#d93025":"#333";
+
+}
+
+function buildGrid(){
+
+const grid=document.getElementById("questionGrid");
+
+grid.innerHTML="";
+
+activeQuestions.forEach((q,i)=>{
+
+const b=document.createElement("button");
+
+b.className="q-dot";
+b.textContent=i+1;
+
+b.onclick=()=>{
+current=i;
+showQuestion();
+};
+
+grid.appendChild(b);
+
+});
+
+}
+
+function updateGrid(){
+
+document.querySelectorAll(".q-dot").forEach((b,i)=>{
+
+b.classList.toggle("current",i===current);
+
+b.classList.toggle(
+"answered",
+String(userAnswers[i]||"").trim()!==""
+);
+
+});
+
+}
+
+function showQuestion(){
+
+const q=activeQuestions[current];
+
+document.getElementById("progress").style.width=
+((current+1)/activeQuestions.length*100)+"%";
+
+document.getElementById("question").innerHTML=`
+
+<div class="category">${q.c}</div>
+
+<div class="question-number">
+問題 ${current+1} / ${activeQuestions.length}
+</div>
+
+<div class="question-text">${q.q}</div>
+
+<input
+id="shortInput"
+class="short-input"
+type="text"
+inputmode="text"
+autocomplete="off"
+placeholder="答えを入力してください"
+value="${escapeHtml(userAnswers[current]||"")}"
+oninput="setAnswer(this.value)"
+>
+
+`;
+
+document.getElementById("prevBtn").disabled=current===0;
+
+const next=document.getElementById("nextBtn");
+
+if(current===activeQuestions.length-1){
+
+next.textContent="提出する";
+next.className="danger";
+next.onclick=submitTest;
+
+}else{
+
+next.textContent="次の問題 →";
+next.className="primary";
+next.onclick=nextQuestion;
+
+}
+
+updateGrid();
+
+}
+
+function setAnswer(v){
+
+userAnswers[current]=v;
+updateGrid();
+
+}
+
+function prevQuestion(){
+
+if(current<=0)return;
+
+current--;
+showQuestion();
+
+window.scrollTo({top:0,behavior:"smooth"});
+
+}
+
+function nextQuestion(){
+
+if(current<activeQuestions.length-1){
+
+current++;
+showQuestion();
+
+window.scrollTo({top:0,behavior:"smooth"});
+
+}
+
+}
+
+function submitTest(force=false){
+
+if(submitted)return;
+
+if(!force){
+
+const unanswered=userAnswers.filter(v=>!String(v).trim()).length;
+
+if(unanswered){
+
+if(!confirm(
+`未回答の問題が ${unanswered} 問あります。\nこのまま提出しますか？`
+))return;
+
+}
+
+}
+
+submitted=true;
+
+if(timerId){
+clearInterval(timerId);
+timerId=null;
+}
+
+let score=0;
+
+activeQuestions.forEach((q,i)=>{
+if(isCorrect(q,i))score++;
+});
+
+let wrong=[];
+
+activeQuestions.forEach((q,i)=>{
+
+if(!isCorrect(q,i)){
+
+const originalIndex=questions.indexOf(q);
+
+if(originalIndex>=0)wrong.push(originalIndex);
+
+}
+
+});
+
+saveWrong(wrong);
+
+document.getElementById("testScreen").classList.add("hidden");
+document.getElementById("resultScreen").classList.remove("hidden");
+
+const percent=Math.round(score/activeQuestions.length*100);
+
+document.getElementById("score").textContent=
+`${score} / ${activeQuestions.length}`;
+
+document.getElementById("percentage").textContent=
+`${percent}%`;
+
+let message="";
+
+if(percent===100){
+message="満点！すごい！";
+}else if(percent>=90){
+message="かなりよくできています！";
+}else if(percent>=80){
+message="あと少しでかなり強いです！";
+}else if(percent>=60){
+message="ここから復習すれば伸ばせます！";
+}else{
+message="間違えた問題を中心に復習しよう！";
+}
+
+if(retryMode&&percent===100){
+message="前回の間違いを全部克服しました！🎉";
+}
+
+document.getElementById("resultMessage").textContent=message;
+
+renderRetryResult();
+
+window.scrollTo({top:0,behavior:"smooth"});
+
+}
+
+function renderRetryResult(){
+
+const wrong=getWrong();
+const area=document.getElementById("retryResultArea");
+
+if(!wrong.length){
+
+area.innerHTML=`
+<div class="retry-info" style="background:#e8f5e9;border-color:#a5d6a7">
+<b>間違えた問題はありません！</b><br>
+弱点克服完了です！
+</div>
+`;
+
+return;
+
+}
+
+const h=wrong.filter(i=>questions[i].c==="歴史").length;
+const g=wrong.filter(i=>questions[i].c==="地理").length;
+
+area.innerHTML=`
+<div class="retry-info">
+まだ間違えている問題：<b>${wrong.length}問</b><br>
+歴史：${h}問　地理：${g}問
+</div>
+
+<div class="actions">
+<button class="danger" onclick="startRetry()">
+間違えた問題を再テスト
+</button>
+</div>
+`;
+
+}
+
+function showAnswers(){
+
+const box=document.getElementById("answerScreen");
+const list=document.getElementById("answers");
+
+box.classList.remove("hidden");
+
+let html="";
+
+activeQuestions.forEach((q,i)=>{
+
+const correct=isCorrect(q,i);
+const user=userAnswers[i]||"未回答";
+
+html+=`
+<div class="answer-row">
+
+<b>${i+1}. ${q.q}</b>
+
+<div class="${correct?"correct":"incorrect"}">
+${correct?"○ 正解":"× 不正解"}
+</div>
+
+<div>
+あなたの答え：${escapeHtml(user)}
+</div>
+
+<div class="answer">
+正解：<b>${escapeHtml(q.a[0])}</b><br>
+<span style="color:#666;font-size:14px">
+${escapeHtml(q.e)}
+</span>
+</div>
+
+</div>
+`;
+
+});
+
+list.innerHTML=html;
+
+window.scrollTo({
+top:document.body.scrollHeight,
+behavior:"smooth"
+});
+
+}
+
+function renderStartRetry(){
+
+const wrong=getWrong();
+const area=document.getElementById("retryArea");
+
+if(!wrong.length){
+area.innerHTML="";
+return;
+}
+
+const h=wrong.filter(i=>questions[i].c==="歴史").length;
+const g=wrong.filter(i=>questions[i].c==="地理").length;
+
+area.innerHTML=`
+<div class="retry-info">
+前回の間違い：<b>${wrong.length}問</b><br>
+歴史：${h}問　地理：${g}問
+</div>
+
+<div class="actions">
+<button class="danger" onclick="startRetry()">
+間違えた問題を再テスト
+</button>
+</div>
+`;
+
+}
+
+renderStartRetry();
+
+</script>
+
+</body>
+</html>
